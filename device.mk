@@ -1,0 +1,113 @@
+#
+# SPDX-FileCopyrightText: Paranoid Android
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# Boot animation
+TARGET_SCREEN_HEIGHT := 1600
+TARGET_SCREEN_WIDTH := 720
+
+# Screen
+TARGET_SCREEN_DENSITY := 280
+
+# AAPT
+PRODUCT_AAPT_CONFIG := normal
+PRODUCT_AAPT_PREF_CONFIG := 280dpi
+PRODUCT_AAPT_PREBUILT_DPI := xxxhdpi xxhdpi xhdpi hdpi
+
+# Shipping API level
+PRODUCT_SHIPPING_API_LEVEL := 34
+
+# Inherit from motorola sm6375-common
+$(call inherit-product, device/motorola/sm6375-common/common.mk)
+
+# Overlays
+PRODUCT_PACKAGES += \
+    ApertureResDevice \
+    FrameworksResDevice \
+    FrameworksResDeviceXT2363-8 \
+    FrameworksResDeviceXT2363-9 \
+    ProductFrameworksResDevice \
+    SystemUIResDevice \
+    WifiResDevice \
+    WifiResDeviceXT2363-8 \
+    WifiResDeviceXT2363-9
+
+# Audio
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/audio/audio_io_policy.conf:$(TARGET_COPY_OUT_VENDOR)/etc/audio_io_policy.conf \
+    $(LOCAL_PATH)/audio/audio_platform_info.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_platform_info.xml \
+    $(LOCAL_PATH)/audio/audio_policy_volumes.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_policy_volumes.xml \
+    $(LOCAL_PATH)/audio/default_volume_tables.xml:$(TARGET_COPY_OUT_VENDOR)/etc/default_volume_tables.xml \
+    $(LOCAL_PATH)/audio/mixer_paths.xml:$(TARGET_COPY_OUT_VENDOR)/etc/mixer_paths.xml
+
+# FM
+TARGET_HAS_FM := true
+
+PRODUCT_PACKAGES += \
+    FM2
+
+# Init
+PRODUCT_PACKAGES += \
+    init.mmi.overlay.rc \
+    init.nfc.sec.rc \
+    init.oem.fingerprint2.sh
+
+# Lineage Health (charging control) -- AOSPA calcite still ships the
+# vendor.lineage.health AIDL HAL (vendor/aospa/interfaces/health) and the
+# org.lineageos.health permission, so this integration is intentionally kept.
+$(call soong_config_set,lineage_health,charging_control_charging_path,sys/class/power_supply/battery/input_current_limit)
+$(call soong_config_set,lineage_health,charging_control_charging_enabled,0)
+$(call soong_config_set,lineage_health,charging_control_charging_disabled,1)
+$(call soong_config_set_bool,lineage_health,charging_control_supports_bypass,false)
+$(call soong_config_set,lineage_health,fast_charge_node,/sys/class/qcom-battery/restrict_chg)
+$(call soong_config_set,lineage_health,fast_charge_value_none,1)
+$(call soong_config_set,lineage_health,fast_charge_value_fast_charge,0)
+
+# NFC
+PRODUCT_PACKAGES += \
+    android.hardware.nfc-service.sec \
+    com.android.nfc_extras \
+    Tag
+
+# Permissions
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.nfc.hce.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.nfc.hce.xml \
+    frameworks/native/data/etc/android.hardware.nfc.hcef.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.nfc.hcef.xml \
+    frameworks/native/data/etc/android.hardware.nfc.uicc.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.nfc.uicc.xml \
+    frameworks/native/data/etc/android.hardware.nfc.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.nfc.xml \
+    frameworks/native/data/etc/android.hardware.telephony.euicc.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/permissions/android.hardware.telephony.euicc.xml \
+    frameworks/native/data/etc/com.nxp.mifare.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/com.nxp.mifare.xml
+
+DEVICE_SKUS := b d
+
+PRODUCT_COPY_FILES += \
+$(foreach DEVICE_SKU, $(DEVICE_SKUS), \
+    $(LOCAL_PATH)/permissions/unavail.android.hardware.nfc.hce.xml:$(TARGET_COPY_OUT_ODM)/etc/permissions/sku_$(DEVICE_SKU)/unavail.android.hardware.nfc.hce.xml \
+    $(LOCAL_PATH)/permissions/unavail.android.hardware.nfc.hcef.xml:$(TARGET_COPY_OUT_ODM)/etc/permissions/sku_$(DEVICE_SKU)/unavail.android.hardware.nfc.hcef.xml \
+    $(LOCAL_PATH)/permissions/unavail.android.hardware.nfc.uicc.xml:$(TARGET_COPY_OUT_ODM)/etc/permissions/sku_$(DEVICE_SKU)/unavail.android.hardware.nfc.uicc.xml \
+    $(LOCAL_PATH)/permissions/unavail.android.hardware.nfc.xml:$(TARGET_COPY_OUT_ODM)/etc/permissions/sku_$(DEVICE_SKU)/unavail.android.hardware.nfc.xml)
+
+# Power
+#
+# The AOSPA power HAL (vendor.aospa.power-service) natively implements
+# DOUBLE_TAP_TO_WAKE through TARGET_TAP_TO_WAKE_NODE (see
+# vendor/aospa/interfaces/power/default/PowerFeature.cpp), so the old Lineage
+# libperfmgr mode-extension library is no longer needed. The node is declared in
+# BoardConfig.mk.
+
+# Properties
+PRODUCT_PACKAGES += \
+    hardware.sku.XT2363-8.prop \
+    hardware.sku.XT2363-9.prop
+
+# Sensors
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/sensors/hals.conf:$(TARGET_COPY_OUT_VENDOR)/etc/sensors/hals.conf
+
+# Soong namespaces
+PRODUCT_SOONG_NAMESPACES += \
+    $(LOCAL_PATH)
+
+# Inherit from vendor blobs
+$(call inherit-product, vendor/motorola/fogos/fogos-vendor.mk)
